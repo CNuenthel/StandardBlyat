@@ -1,13 +1,24 @@
-To use:
+StandardBlyat
+Setup Instructions
+1. Clone the Repository
 
-Clone Repository
-`git clone https://github.com/CNuenthel/StandardBlyat.git`
+To clone the repository to your local machine, use the following command:
 
-Enter Repository
-`cd StandardBlyat`
+git clone https://github.com/CNuenthel/StandardBlyat.git
 
-Execute Main
-`python main.py`
+2. Enter the Repository
 
-Requires:
-python3.12+
+Navigate to the cloned repository directory:
+
+cd StandardBlyat
+
+3. Execute the Main Script
+
+Run the main script to get started:
+
+python main.py
+
+Requirements
+
+    Python 3.12+ is required to run this application.
+
