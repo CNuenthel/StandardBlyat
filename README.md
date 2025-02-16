@@ -12,9 +12,14 @@ git clone https://github.com/CNuenthel/StandardBlyat.git
 ### 2. Enter the Repository
 
 Navigate to the cloned repository directory:
-```cd StandardBlyat```
+
+```bash
+cd StandardBlyat
+```
 
 ### 3. Execute the Main Script
 
 Run the main script to get started:
-```python main.py```
+```bash
+python main.py
+```
