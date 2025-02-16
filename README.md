@@ -1,10 +1,10 @@
 To use:
 
-`git clone https://github.com/CNuenthel/StandardBlyat.git`
+```git clone https://github.com/CNuenthel/StandardBlyat.git```
 
-`cd StandardBlyat`
+```cd StandardBlyat```
 
-`python main.py`
+```python main.py```
 
 Requires:
 python3.12+
