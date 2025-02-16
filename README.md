@@ -1,5 +1,8 @@
 # StandardBlyat
 
+Currently I have this just to review "Valuables" as categorized in Tarkov. This file currently just compares vendor prices and flea market below-vendor-price averages for potentially flippable items
+on the flea market. I've currently had more success with timeliness on items with Deltas approaching ~3000
+
 ## Requirements
 To execute this script you will need [Python](https://www.python.org/downloads/) installed with minimum version 3.12
 
