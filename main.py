@@ -56,46 +56,47 @@ def get_best_vendor(item_id) -> dict:
         print(f"Failed to pull vendor data.\n{e}")
 
 
+def check_item_profitability(item: dict):
+    # print(f"[*] Checking for best vendor on {item["name"]}...", flush=True)
+
+    # Get best vendor for an item
+    vendor = get_best_vendor(item["id"])
+    # print(f"[*] Best vendor found: {vendor["vendor"]["name"]}", end="\r", flush=True)
+
+    # Get all prices for an item
+    # print(f"[*] Pulling prices for {item["name"]}...", end="\r", flush=True)
+    prices = pull_item_price(item["id"])
+
+    # Reduce prices to only items that are profitable to flip
+    # print(f"[*] Checking profitability to target vendor...", end="\r", flush=True)
+    profitable = []
+    price_aggregate = []
+
+    for val in prices:
+        if vendor["priceRUB"] - val["price"] > 1000:
+            price_aggregate.append(val["price"])
+            profitable.append(val)
+
+    if price_aggregate:
+        avg_price = int(sum(price_aggregate) / len(price_aggregate))
+    else:
+        avg_price = 0
+
+    diff = vendor["priceRUB"] - avg_price
+
+    if len(profitable) > 20:
+        print(f"{item["name"]:<30}{avg_price:>10}{vendor["priceRUB"]:>10}{vendor["vendor"]["name"]:^15}{diff:^10}")
+
+
 if __name__ == "__main__":
     # list[Dict: "id", "name", "types"]
     valuables = sort.valuable_items()
     found_flippable = []
+
+    print("Valuables")
+
+    print(f"{'Item':<30}{'Flea':>10}{'VenPays':>10}{'Vendor':^15}{'Delta':^10}")
+    print(" ")
+
     for item in valuables:
-        print(f"[*] Checking for best vendor on {item["name"]}...")
-        # Get best vendor for an item
-        vendor = get_best_vendor(item["id"])
-        print(f"[*] Best vendor found: {vendor["vendor"]["name"]}")
-
-        # Get all prices for an item
-        print(f"[*] Pulling prices for {item["name"]}...")
-        prices = pull_item_price(item["id"])
-
-        # Reduce prices to only items that are profitable to flip
-        print(f"[*] Checking profitability to target vendor...")
-        profitable = []
-        price_aggregate = []
-        for val in prices:
-            if vendor["priceRUB"] - val["price"] > 1000:
-                price_aggregate.append(val["price"])
-                profitable.append(val)
-
-        if price_aggregate:
-            avg_price = int(sum(price_aggregate) / len(price_aggregate))
-        else:
-            avg_price = 0
-
-        if len(profitable) > 20:
-            flip_data = {"ven_pays": vendor["priceRUB"], "item_name": item["name"], "avg_flea_price": avg_price, "vendor_name": vendor["vendor"]["name"]}
-            found_flippable.append(flip_data)
-            print(f"[*] {item["name"]} is profitable, found {len(profitable)} items flippable to {vendor["vendor"]["name"]}")
-        else:
-            print(f"[*] {item["name"]} is not profitable, moving on...")
-
-    if found_flippable:
-        for item in found_flippable:
-            print(f"{item["item_name"]}:")
-            print(f"    Average flea price: {item["avg_flea_price"]}")
-            print(f"    Top vendor: {item["vendor_name"]}")
-            print(f"    Vendor offer: {item["ven_pays"]}")
-    else:
-        print("Yikes... no detected flippable items")
+        check_item_profitability(item)
