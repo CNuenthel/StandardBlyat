@@ -4,7 +4,7 @@
 
 ### Requirements
 To execute this script you will need Python installed with minimum version 3.12
-[Python]([URL](https://www.python.org/downloads/))
+[Python](https://www.python.org/downloads/)
 
 ### 1. Clone the Repository
 To clone the repository to your local machine, use the following command:
