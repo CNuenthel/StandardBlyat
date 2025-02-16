@@ -1,6 +1,6 @@
 # StandardBlyat
 
-This script compares flea market items with vendor sale prices. If items are found to have numerous flea sale prices less than a vendor sale price, those items are aggregated and compared to determinee profitability. The flea market moves fast, so this is not a gaurantee that the item is still present, but generally points towards higher volume "discount" items as the Delta increases. 
+This script compares flea market items with vendor sale prices. If items are found to have numerous flea sale prices less than a vendor sale price, those items are aggregated and compared to determine profitability. The flea market moves fast, so this is not a gaurantee that the item is still present, but generally points towards higher volume "discount" items as the Delta increases. 
 
 Currently I have this just to review "Valuables" as categorized in Tarkov. I've currently had more success with timeliness on items with Deltas approaching ~3000
 
