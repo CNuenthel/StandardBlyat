@@ -5,7 +5,7 @@ This script compares flea market items with vendor sale prices. If items are fou
 Currently I have this just to review "Valuables" as categorized in Tarkov. I've currently had more success with timeliness on items with Deltas approaching ~3000
 
 ## Requirements
-To execute this script you will need [Python](https://www.python.org/downloads/) installed with minimum version 3.12
+To execute this script you will need [Python](https://www.python.org/downloads/) installed with minimum version 3.12. 
 
 ## Setup Instructions
 
@@ -24,7 +24,12 @@ Navigate to the cloned repository directory:
 cd StandardBlyat
 ```
 
-### 3. Execute the Main Script
+### 3. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Execute the Main Script
 
 Run the main script to get started:
 ```bash
