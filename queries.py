@@ -1,15 +1,14 @@
-import requests
-
-URL = "https://api.tarkov.dev/graphql"
 
 
-def run_query(query):
-    headers = {"Content-Type": "application/json"}
-    response = requests.post(URL, headers=headers, json={'query': query})
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise Exception("Query failed to run by returning code of {}. {}".format(response.status_code, query))
+async def run_query(session, query):
+    """Runs a GraphQL query asynchronously."""
+    url = "https://api.tarkov.dev/graphql"
+    try:
+        async with session.post(url, json={"query": query}) as response:
+            return await response.json()
+    except Exception as e:
+        print(f"Query failed: {e}")
+        return None
 
 
 def pull_items_query():
