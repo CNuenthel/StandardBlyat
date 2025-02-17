@@ -60,7 +60,3 @@ def pull_vendor_sell_price(item_id: str):
     """
     query = "{" + func + fields + "}"
     return query
-
-
-if __name__ == "__main__":
-    res = run_query(pull_vendor_sell_price("57347b8b24597737dd42e192"))

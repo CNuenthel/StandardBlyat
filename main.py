@@ -1,10 +1,13 @@
 from datetime import datetime
+from colors import Color, color_text
 import queries
 import sort
 import pytz
 import asyncio
 import aiohttp
-
+import os
+import sys
+import time
 
 # def convert_epoch(epoch_timestamp: str):
 #     int_epoch = int(epoch_timestamp)
@@ -61,11 +64,35 @@ async def check_item_profitability(session, item):
     diff = vendor["priceRUB"] - avg_price
 
     if len(profitable) > 20:
-        print(f"{item['name']:<35}{avg_price:>10}{vendor['priceRUB']:>10}{vendor['vendor']['name']:^15}{diff:^10}")
-
+        if diff <= 2000:
+            print(
+                color_text(
+                    f"{item['name']:<35}{avg_price:>10}{vendor['priceRUB']:>10}{vendor['vendor']['name']:^15}{diff:^10}",
+                    Color.BRTBLUE
+                )
+            )
+        elif 2001 <= diff <= 3000:
+            print(
+                color_text(
+                    f"{item['name']:<35}{avg_price:>10}{vendor['priceRUB']:>10}{vendor['vendor']['name']:^15}{diff:^10}",
+                    Color.BRTCYAN
+                )
+            )
+        elif diff > 3000:
+            print(
+                color_text(
+                    f"{item['name']:<35}{avg_price:>10}{vendor['priceRUB']:>10}{vendor['vendor']['name']:^15}{diff:^10}",
+                    Color.BRTGREEN
+                )
+            )
 
 def print_table_header():
-    print(f"{'Item':<35}{'Flea':>10}{'VenPays':>10}{'Vendor':^15}{'Delta':^10}")
+    print(
+        color_text(
+            f"{'Item':<35}{'Flea':>10}{'VenPays':>10}{'Vendor':^15}{'Delta':^10}",
+            Color.CYAN
+        )
+    )
     print(" ")
 
 
@@ -73,14 +100,23 @@ async def main():
     lists = sort.LISTS
     list_map = {i + 1: k for i, k in enumerate(lists.keys())}
     list_strs = [f"{k}: {v}" for k, v in list_map.items()]
+    list_strs.insert(0, "0. Exit")
 
     async with aiohttp.ClientSession() as session:
         while True:
             try:
-                inp = int(input(f"\nPlease select a list to scan...\n{"\n".join(list_strs)}\n"))
+                inp = int(input(f"\n{"\n".join(list_strs)}\n\nPlease select a list to scan: "))
+
+                if inp == 0:
+                    os.system("cls")
+                    print("\n Goodbye!")
+                    time.sleep(2)
+                    sys.exit()
+
                 if inp not in list_map:
                     print("Invalid selection. Try again.")
                     continue
+
             except ValueError:
                 print("Invalid input. Enter a number.")
                 continue
@@ -93,7 +129,9 @@ async def main():
             tasks = [check_item_profitability(session, item) for item in scan_list]
             await asyncio.gather(*tasks)
 
-            print("\n15-2, 15-4 That's all there is, there ain't no more.")
+            print("\n\033[36m15-2, 15-4 That's all there is, there ain't no more.\033[0m")
+            input("\033[36mPress Enter to select a new scan list...\033[0m")
+            os.system("cls")
 
 
 if __name__ == "__main__":
