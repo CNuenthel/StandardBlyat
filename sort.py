@@ -32,23 +32,12 @@ for filename in os.listdir("item_lists"):
 
 
 # LIST BUILDING BS
-
-with open("item_lists/items.json", "r") as f:
-    ITEMS = json.load(f)
-
-its = [
-"Aquapeps water purification tablets",
-"Bottle of OLOLO Multivitamins",
-"Bottle of saline solution",
-"Disposable syringe",
-"LEDX Skin Transilluminator",
-"Medical bloodset",
-"Medical tools",
-"Ophthalmoscope",
-"Pile of meds",
-"Portable defibrillator"
-]
-x = [item for item in ITEMS if item["name"] in its]
-
-with open("item_lists/barter_meds.json", "w") as f:
-    json.dump(x, f, indent=2)
+#
+# with open("item_lists/items.json", "r") as f:
+#     ITEMS = json.load(f)
+#
+# 
+# x = [item for item in ITEMS if "provisions" in item["types"]]
+#
+# with open("item_lists/1.json", "w") as f:
+#     json.dump(x, f, indent=2)

@@ -9,6 +9,7 @@ import os
 import sys
 import time
 
+
 # def convert_epoch(epoch_timestamp: str):
 #     int_epoch = int(epoch_timestamp)
 #     timestamp_s = int_epoch / 1000
@@ -85,6 +86,7 @@ async def check_item_profitability(session, item):
                     Color.BRTGREEN
                 )
             )
+
 
 def print_table_header():
     print(
