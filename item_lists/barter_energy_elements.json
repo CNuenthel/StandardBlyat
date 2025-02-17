@@ -1,0 +1,58 @@
+[
+  {
+    "id": "5672cb124bdc2d1a0f8b4568",
+    "name": "AA Battery",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "5672cb304bdc2dc2088b456a",
+    "name": "D Size battery",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "5733279d245977289b77ec24",
+    "name": "Car battery",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "590a358486f77429692b2790",
+    "name": "Rechargeable battery",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "5af0561e86f7745f5f3ad6ac",
+    "name": "Portable Powerbank",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "5d03794386f77420415576f5",
+    "name": "6-STEN-140-M military battery",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "5e2aedd986f7746d404f3aa4",
+    "name": "GreenBat lithium battery",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "5e2aee0a86f774755a234b62",
+    "name": "Cyclon rechargeable battery",
+    "types": [
+      "barter"
+    ]
+  }
+]

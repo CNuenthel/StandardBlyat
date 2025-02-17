@@ -1,0 +1,72 @@
+[
+  {
+    "id": "59e3606886f77417674759a5",
+    "name": "Bottle of saline solution",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "5af0534a86f7743b6f354284",
+    "name": "Ophthalmoscope",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "5b4335ba86f7744d2837a264",
+    "name": "Medical bloodset",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "5c052e6986f7746b207bc3c9",
+    "name": "Portable defibrillator",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "5c0530ee86f774697952d952",
+    "name": "LEDX Skin Transilluminator",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "5d1b3a5d86f774252167ba22",
+    "name": "Pile of meds",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "5d1b3f2d86f774253763b735",
+    "name": "Disposable syringe",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "619cc01e0a7c3a1a2731940c",
+    "name": "Medical tools",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "62a0a043cf4a99369e2624a5",
+    "name": "Bottle of OLOLO Multivitamins",
+    "types": [
+      "barter"
+    ]
+  },
+  {
+    "id": "6389c6c7dbfd5e4b95197e68",
+    "name": "Aquapeps water purification tablets",
+    "types": [
+      "barter"
+    ]
+  }
+]
