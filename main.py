@@ -57,8 +57,6 @@ def get_best_vendor(item_id) -> dict:
 
 
 def check_item_profitability(item: dict):
-    # print(f"[*] Checking for best vendor on {item["name"]}...", flush=True)
-
     # Get best vendor for an item
     vendor = get_best_vendor(item["id"])
     # print(f"[*] Best vendor found: {vendor["vendor"]["name"]}", end="\r", flush=True)
@@ -85,18 +83,35 @@ def check_item_profitability(item: dict):
     diff = vendor["priceRUB"] - avg_price
 
     if len(profitable) > 20:
-        print(f"{item["name"]:<30}{avg_price:>10}{vendor["priceRUB"]:>10}{vendor["vendor"]["name"]:^15}{diff:^10}")
+        print(f"{item["name"]:<35}{avg_price:>10}{vendor["priceRUB"]:>10}{vendor["vendor"]["name"]:^15}{diff:^10}")
+
+
+def print_table_header():
+    print(f"{'Item':<35}{'Flea':>10}{'VenPays':>10}{'Vendor':^15}{'Delta':^10}")
+    print(" ")
 
 
 if __name__ == "__main__":
-    # list[Dict: "id", "name", "types"]
-    valuables = sort.valuable_items()
-    found_flippable = []
+    lists = sort.LISTS
+    list_map = {i + 1: k for i, k in enumerate(lists.keys())}
+    list_strs = [f"{k}: {v}" for k, v in list_map.items()]
 
-    print("Valuables")
+    while True:
+        try:
+            inp = int(input(f"\nPlease select a list to scan...\n{"\n".join(list_strs)}\n"))
+        except ValueError:
+            continue
 
-    print(f"{'Item':<30}{'Flea':>10}{'VenPays':>10}{'Vendor':^15}{'Delta':^10}")
-    print(" ")
+        scan_list = lists[list_map[inp]]
 
-    for item in valuables:
-        check_item_profitability(item)
+        print(f"Scanning {list_map[inp]}\n")
+        print_table_header()
+
+        for item in scan_list:
+            check_item_profitability(item)
+
+        print("15-2, 15-4 That's all there is, their ain't no more.")
+
+
+
+

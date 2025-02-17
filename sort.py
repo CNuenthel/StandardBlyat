@@ -1,48 +1,39 @@
 import json
+import os
 
-with open("items.json", "r") as f:
-    ITEMS = json.load(f).get("items")
-
-
-def valuable_items():
-    val_items = [
-        "Antique teapot",
-        "Antique vase",
-        "Axel parrot figurine",
-        "BEAR operative figurine",
-        "Battered antique book",
-        "Bronze lion figurine",
-        "Cat figurine",
-        "Chain with Prokill medallion",
-        "Chainlet",
-        "Cultist figurine",
-        "Ded Moroz figurine",
-        "Den figurine",
-        "Gold skull ring",
-        "Golden egg",
-        "Golden neck chain",
-        "Golden rooster figurine",
-        "Horse figurine",
-        "Killa figurine",
-        "Loot Lord plushie",
-        "Old firesteel",
-        "Politician Mutkevich figurine",
-        "Raven figurine",
-        "Reshala figurine",
-        "Roler Submariner gold wrist watch",
-        "Ryzhy figurine",
-        "Scav figurine",
-        "Silver Badge",
-        "Tagilla figurine",
-        "Tamatthi kunai knife replica",
-        "USEC operative figurine",
-        "Veritas guitar pick",
-        "Viibiin sneaker",
-        "Wooden clock"
-    ]
-    matching_items = [item for item in ITEMS if item["name"] in val_items]
-    return matching_items
+LISTS = {}
 
 
-if __name__ == "__main__":
-    res = valuable_items()
+def format_filename(filename: str):
+    """
+    Splits a filename string into components and formats a proper name from snake case filenames
+    :param filename: String filename
+    :return: Dict:
+        "raw": The full filename,
+        "base_name": filename without extension,
+        "proper_name": formatted human-readable filename in title case,
+        "file_ext": filename extension only
+    """
+    components = {
+        "raw": filename,
+        "base_name": filename.split(".")[0],
+        "proper_name": " ".join(filename.split(".")[0].split("_")).title(),
+        "file_ext": filename.split(".")[1]
+
+    }
+    return components
+
+
+for filename in os.listdir("item_lists"):
+    with open(f"item_lists/{filename}", "r") as f:
+        LISTS[format_filename(filename)["proper_name"]] = json.load(f)
+
+
+its = [
+
+]
+
+# x = [item for item in ITEMS if item["name"] in its]
+#
+# with open("item_lists/barter_electronics.json", "w") as f:
+#     json.dump(x, f, indent=2)
