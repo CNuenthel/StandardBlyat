@@ -36,7 +36,7 @@ for filename in os.listdir("item_lists"):
 # with open("item_lists/items.json", "r") as f:
 #     ITEMS = json.load(f)
 #
-# 
+#
 # x = [item for item in ITEMS if "provisions" in item["types"]]
 #
 # with open("item_lists/1.json", "w") as f:

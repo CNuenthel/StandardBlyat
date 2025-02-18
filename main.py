@@ -2,7 +2,7 @@ from datetime import datetime
 from colors import Color, color_text
 import queries
 import sort
-import pytz
+import pyfiglet
 import asyncio
 import aiohttp
 import os
@@ -99,21 +99,30 @@ def print_table_header():
 
 
 async def main():
+    os.system("cls")
+    
+    banner = pyfiglet.figlet_format("StandardBlyat")
     lists = sort.LISTS
     list_map = {i + 1: k for i, k in enumerate(lists.keys())}
-    list_strs = [f"{k}: {v}" for k, v in list_map.items()]
-    list_strs.insert(0, "0. Exit")
+    list_strs = [color_text(f"{k}: {v}", Color.CYAN) for k, v in list_map.items()]
+    list_strs.append(color_text("\nType Exit to Quit.", Color.BRTRED))
 
     async with aiohttp.ClientSession() as session:
         while True:
-            try:
-                inp = int(input(f"\n{"\n".join(list_strs)}\n\nPlease select a list to scan: "))
+            print("=" * 68)
+            print(banner)
+            print("=" * 68)
 
-                if inp == 0:
+            try:
+                inp = input(f"\n{"\n".join(list_strs)}\n\nPlease select a list to scan: ")
+
+                if inp.lower() == "exit":
                     os.system("cls")
                     print("\n Goodbye!")
                     time.sleep(2)
                     sys.exit()
+
+                inp = int(inp)
 
                 if inp not in list_map:
                     print("Invalid selection. Try again.")
