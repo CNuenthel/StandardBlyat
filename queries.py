@@ -1,10 +1,13 @@
+import aiohttp
+import asyncio
+import json
 
 
-async def run_query(session, query):
+async def run_query(session, query, variables):
     """Runs a GraphQL query asynchronously."""
     url = "https://api.tarkov.dev/graphql"
     try:
-        async with session.post(url, json={"query": query}) as response:
+        async with session.post(url, json={"query": query, "variables": variables}) as response:
             return await response.json()
     except Exception as e:
         print(f"Query failed: {e}")
@@ -34,29 +37,39 @@ def pull_item_price_query(item_id: str):
     :param item_id: String id of target item
     :return: String graphql query
     """
-    func = 'itemPrices(gameMode: pve id: "' + item_id + '")'
-    fields = """ {
-        price
-        timestamp
-        }
-    """
-    query = "{" + func + fields + "}"
-    return query
-
-
-def pull_vendor_sell_price(item_id: str):
-    func = 'item(gameMode: pve id: "' + item_id + '")'
-    fields = """ {
-        id
-        name
-        sellFor {
+    query = """
+    {
+        itemPrices($id: String!, $gameMode: pve) {
             price
-            priceRUB
-            vendor {
-                name
-            }
+            timestamp
         }
     }
     """
-    query = "{" + func + fields + "}"
-    return query
+    variables = {
+        'id': item_id,
+        "gameMode": "pve",
+    }
+    return query, variables
+
+
+def pull_vendor_sell_prices(item_ids: list):
+    query = """
+    query Items($lang: LanguageCode, $ids: [ID]) {
+      items(lang: $lang, ids: $ids) {
+        id
+        name
+        updated
+        sellFor {
+          vendor {
+            name
+          }
+          priceRUB
+        }
+      }
+    }
+    """
+    variables = {
+        'lang': 'en',
+        'ids': item_ids
+    }
+    return query, variables
