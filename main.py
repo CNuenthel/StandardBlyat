@@ -56,23 +56,44 @@ async def get_best_vendor(session, item_ids: list):
         return item_data
 
 
-async def check_item_profitability(session, item, vend: dict):
+async def check_item_profitability(session, item, vend: dict, time_factor: str):
     """Checks item profitability asynchronously."""
+    if time_factor not in ["minute", "hour", "day", "all_time"]:
+        raise ValueError("Improper time factor passed to function.\n"
+                         "Acceptable time factors: 'minute', 'hour', 'day', 'all_time'")
+
     prices_task = pull_item_price(session, item["id"])
     prices = await prices_task
 
     profitable = []
     price_aggregate = []
-
     for val in prices:
+        epoch_now = int(time.time())
+        price_timestamp = int(val["timestamp"]) / 1000
+        time_diff = abs(epoch_now - price_timestamp)
+
         if vend["priceRUB"] - val["price"] > 1000:
-            price_aggregate.append(val["price"])
-            profitable.append(val)
+            match time_factor:
+                case "minute":
+                    if time_diff <= 300:
+                        price_aggregate.append(val["price"])
+                        profitable.append(val)
+                case "hour":
+                    if time_diff <= 3600:
+                        price_aggregate.append(val["price"])
+                        profitable.append(val)
+                case "day":
+                    if time_diff <= 86400:
+                        price_aggregate.append(val["price"])
+                        profitable.append(val)
+                case "all_time":
+                    price_aggregate.append(val["price"])
+                    profitable.append(val)
 
     avg_price = int(sum(price_aggregate) / len(price_aggregate)) if price_aggregate else 0
     diff = vend["priceRUB"] - avg_price
 
-    if len(profitable) > 20:
+    if len(profitable) > 5:
         if diff <= 2000:
             print(
                 color_text(
@@ -125,6 +146,40 @@ async def main():
             print("=" * 68)
 
             try:
+                time_map = {1: "minute", 2: "hour", 3: "day", 4: "all_time"}
+                time_fac_input = int(
+                    input(
+                        f"\n"
+                        f"1. Minute\n"
+                        f"2. Hour\n"
+                        f"3. Day\n"
+                        f"4. All Time\n"
+                        f"\n"
+                        f"\n"
+                        f"Please select a time factor to limit flea market data.\n"
+                        f"The time factor will define how far back flea market data\n"
+                        f"will be reviewed for items.\n"
+                    )
+                )
+
+                if time_fac_input not in [1, 2, 3, 4]:
+                    print("Invalid selection. Try again.")
+                    continue
+
+                time_factor = time_map[time_fac_input]
+                os.system("cls")
+                break
+
+            except ValueError:
+                print("Invalid input. Enter a number.")
+                continue
+
+        while True:
+            print("=" * 68)
+            print(banner)
+            print("=" * 68)
+
+            try:
                 inp = input(f"\n{"\n".join(list_strs)}\n\nPlease select a list to scan: ")
 
                 if inp.lower() == "exit":
@@ -159,7 +214,7 @@ async def main():
             print(f"\nScanning {list_map[inp]}...\n")
             print_table_header()
 
-            tasks = [check_item_profitability(session, item, vendors[item["id"]]) for item in scan_list]
+            tasks = [check_item_profitability(session, item, vendors[item["id"]], time_factor) for item in scan_list]
             await asyncio.gather(*tasks)
 
             print("\n\033[36m15-2, 15-4 That's all there is, there ain't no more.\033[0m")
