@@ -28,61 +28,69 @@ async def pull_item_price(session, item_id: str):
     return []
 
 
-async def get_best_vendor(session, item_id: str):
+async def get_best_vendor(session, item_ids: list):
     """Queries Tarkov API asynchronously for the best vendor price."""
-    query = queries.pull_vendor_sell_price(item_id)
+    query, variables = queries.pull_vendor_sell_prices(item_ids)
     res = await queries.run_query(session, query)
 
     if res:
-        vendor_data = res.get("data", {}).get("item", {}).get("sellFor", [])
-        best_vendor = {
-            "price": 0,
-            "priceRUB": 0,
-            "vendor": {"name": "Base"}
-        }
-        for ven in vendor_data:
-            if ven["priceRUB"] > best_vendor["priceRUB"] and ven["vendor"]["name"] != "Flea Market":
-                best_vendor = ven
-        return best_vendor
+        item_data = {}
+        items = res["data"]["items"]
+        for item in items:
+
+            vendors = item["sellFor"]
+            best_vendor, best_price = {"priceRUB": 0, "vendor": {"name": "None"}}, 0
+
+            for vendor in vendors:
+
+                if vendor["priceRUB"] > best_price and vendor["vendor"]["name"] != "Flea Market":
+                    best_vendor = vendor
+                    best_price = vendor["priceRUB"]
+
+            data = {
+                "vendor": best_vendor["vendor"]["name"],
+                "priceRUB": best_vendor["priceRUB"],
+                "id": item["id"]
+            }
+            item_data[item["id"]] = data
+        return item_data
 
 
-async def check_item_profitability(session, item):
+async def check_item_profitability(session, item, vend: dict):
     """Checks item profitability asynchronously."""
-    vendor_task = get_best_vendor(session, item["id"])
     prices_task = pull_item_price(session, item["id"])
-
-    vendor, prices = await asyncio.gather(vendor_task, prices_task)
+    prices = await prices_task
 
     profitable = []
     price_aggregate = []
 
     for val in prices:
-        if vendor["priceRUB"] - val["price"] > 1000:
+        if vend["priceRUB"] - val["price"] > 1000:
             price_aggregate.append(val["price"])
             profitable.append(val)
 
     avg_price = int(sum(price_aggregate) / len(price_aggregate)) if price_aggregate else 0
-    diff = vendor["priceRUB"] - avg_price
+    diff = vend["priceRUB"] - avg_price
 
     if len(profitable) > 20:
         if diff <= 2000:
             print(
                 color_text(
-                    f"{item['name']:<35}{avg_price:>10}{vendor['priceRUB']:>10}{vendor['vendor']['name']:^15}{diff:^10}",
+                    f"{item['name']:<35}{avg_price:>10}{vend['priceRUB']:>10}{vend['vendor']:^15}{diff:^10}",
                     Color.BRTBLUE
                 )
             )
         elif 2001 <= diff <= 3000:
             print(
                 color_text(
-                    f"{item['name']:<35}{avg_price:>10}{vendor['priceRUB']:>10}{vendor['vendor']['name']:^15}{diff:^10}",
+                    f"{item['name']:<35}{avg_price:>10}{vend['priceRUB']:>10}{vend['vendor']:^15}{diff:^10}",
                     Color.BRTCYAN
                 )
             )
         elif diff > 3000:
             print(
                 color_text(
-                    f"{item['name']:<35}{avg_price:>10}{vendor['priceRUB']:>10}{vendor['vendor']['name']:^15}{diff:^10}",
+                    f"{item['name']:<35}{avg_price:>10}{vend['priceRUB']:>10}{vend['vendor']:^15}{diff:^10}",
                     Color.BRTGREEN
                 )
             )
@@ -100,7 +108,7 @@ def print_table_header():
 
 async def main():
     os.system("cls")
-    
+
     banner = pyfiglet.figlet_format("StandardBlyat")
     lists = sort.LISTS
     list_map = {i + 1: k for i, k in enumerate(lists.keys())}
@@ -108,6 +116,9 @@ async def main():
     list_strs.append(color_text("\nType Exit to Quit.", Color.BRTRED))
 
     async with aiohttp.ClientSession() as session:
+        vendors = await get_best_vendor(session, [item["id"] for item in lists["Primary List"]])
+        ven_flag = False
+
         while True:
             print("=" * 68)
             print(banner)
@@ -132,12 +143,23 @@ async def main():
                 print("Invalid input. Enter a number.")
                 continue
 
+            if not vendors:
+
+                if ven_flag:  # Failing vendor data pulls, exit the application
+                    print("Unable to pull vendor data, сука блять...")
+                    time.sleep(3)
+                    sys.exit()
+
+                print("Vendor query failed, attempting new vendor scan...")
+                vendors = await get_best_vendor(session, [item["id"] for item in lists["Primary List"]])
+                ven_flag = True
+
             scan_list = lists[list_map[inp]]
 
             print(f"\nScanning {list_map[inp]}...\n")
             print_table_header()
 
-            tasks = [check_item_profitability(session, item) for item in scan_list]
+            tasks = [check_item_profitability(session, item, vendors[item["id"]]) for item in scan_list]
             await asyncio.gather(*tasks)
 
             print("\n\033[36m15-2, 15-4 That's all there is, there ain't no more.\033[0m")

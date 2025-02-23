@@ -1,10 +1,10 @@
 
 
-async def run_query(session, query):
+async def run_query(session, query, variables=None):
     """Runs a GraphQL query asynchronously."""
     url = "https://api.tarkov.dev/graphql"
     try:
-        async with session.post(url, json={"query": query}) as response:
+        async with session.post(url, json={"query": query, "variables": variables}) as response:
             return await response.json()
     except Exception as e:
         print(f"Query failed: {e}")
@@ -44,19 +44,25 @@ def pull_item_price_query(item_id: str):
     return query
 
 
-def pull_vendor_sell_price(item_id: str):
-    func = 'item(gameMode: pve id: "' + item_id + '")'
-    fields = """ {
+def pull_vendor_sell_prices(item_ids: list):
+    query = """
+    query Items($lang: LanguageCode, $ids: [ID]) {
+      items(lang: $lang, ids: $ids) {
         id
         name
+        updated
         sellFor {
-            price
-            priceRUB
-            vendor {
-                name
-            }
+          vendor {
+            name
+          }
+          priceRUB
         }
+      }
     }
     """
-    query = "{" + func + fields + "}"
-    return query
+    variables = {
+        'lang': 'en',
+        'ids': item_ids
+    }
+    return query, variables
+
