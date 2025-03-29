@@ -138,7 +138,9 @@ async def main():
 
     async with aiohttp.ClientSession() as session:
         vendors = await get_best_vendor(session, [item["id"] for item in lists["Primary List"]])
+
         ven_flag = False
+        ven_show = False
 
         while True:
             print("=" * 68)
@@ -171,7 +173,7 @@ async def main():
                 break
 
             except ValueError:
-                print("Invalid input. Enter a number.")
+                input("Invalid input. Press Enter to Continue.")
                 continue
 
         while True:
@@ -180,7 +182,7 @@ async def main():
             print("=" * 68)
 
             try:
-                inp = input(f"\n{"\n".join(list_strs)}\n\nPlease select a list to scan: ")
+                inp = input(f"\n{"\n".join(list_strs)}\n\nVen: {ven_show}\n\nPlease select a list to scan: ")
 
                 if inp.lower() == "exit":
                     os.system("cls")
@@ -188,10 +190,15 @@ async def main():
                     time.sleep(2)
                     sys.exit()
 
+                if inp.lower() == "ven":
+                    input("Show Only Vendor Purchase Price Selected. Press Enter to Continue")
+                    ven_show = not ven_show
+                    continue
+
                 inp = int(inp)
 
                 if inp not in list_map:
-                    print("Invalid selection. Try again.")
+                    input("Invalid selection. Try again. Press Enter to Continue")
                     continue
 
             except ValueError:
@@ -211,11 +218,23 @@ async def main():
 
             scan_list = lists[list_map[inp]]
 
-            print(f"\nScanning {list_map[inp]}...\n")
-            print_table_header()
+            if ven_show:
+                ls = [color_text(
+                            f"{item['name']:<35}"
+                            f"{vendors[item["id"]]["vendor"]:>10}"
+                            f"{vendors[item["id"]]["priceRUB"]:^15}",
+                            Color.BRTBLUE
+                        ) for item in scan_list]
+                sorted_ls = sorted(ls)
+                for item in sorted_ls:
+                    print(item)
 
-            tasks = [check_item_profitability(session, item, vendors[item["id"]], time_factor) for item in scan_list]
-            await asyncio.gather(*tasks)
+            else:
+                print(f"\nScanning {list_map[inp]}...\n")
+                print_table_header()
+
+                tasks = [check_item_profitability(session, item, vendors[item["id"]], time_factor) for item in scan_list]
+                await asyncio.gather(*tasks)
 
             print("\n\033[36m15-2, 15-4 That's all there is, there ain't no more.\033[0m")
             input("\033[36mPress Enter to select a new scan list...\033[0m")
