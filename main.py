@@ -10,13 +10,6 @@ import sys
 import time
 
 
-# def convert_epoch(epoch_timestamp: str):
-#     int_epoch = int(epoch_timestamp)
-#     timestamp_s = int_epoch / 1000
-#     utc_dt = datetime.fromtimestamp(timestamp_s, tz=pytz.utc)
-#     return utc_dt
-#
-
 async def pull_item_price(session, item_id: str):
     """Queries Tarkov API asynchronously for item price data."""
     query = queries.pull_item_price_query(item_id)
@@ -97,21 +90,21 @@ async def check_item_profitability(session, item, vend: dict, time_factor: str):
         if diff <= 2000:
             print(
                 color_text(
-                    f"{item['name']:<35}{avg_price:>10}{vend['priceRUB']:>10}{vend['vendor']:^15}{diff:^10}",
+                    f"{item['name']:<50}{avg_price:>10}{vend['priceRUB']:>10}{vend['vendor']:^15}{diff:^10}",
                     Color.BRTBLUE
                 )
             )
         elif 2001 <= diff <= 3000:
             print(
                 color_text(
-                    f"{item['name']:<35}{avg_price:>10}{vend['priceRUB']:>10}{vend['vendor']:^15}{diff:^10}",
+                    f"{item['name']:<50}{avg_price:>10}{vend['priceRUB']:>10}{vend['vendor']:^15}{diff:^10}",
                     Color.BRTCYAN
                 )
             )
         elif diff > 3000:
             print(
                 color_text(
-                    f"{item['name']:<35}{avg_price:>10}{vend['priceRUB']:>10}{vend['vendor']:^15}{diff:^10}",
+                    f"{item['name']:<50}{avg_price:>10}{vend['priceRUB']:>10}{vend['vendor']:^15}{diff:^10}",
                     Color.BRTGREEN
                 )
             )
@@ -120,7 +113,7 @@ async def check_item_profitability(session, item, vend: dict, time_factor: str):
 def print_table_header():
     print(
         color_text(
-            f"{'Item':<35}{'Flea':>10}{'VenPays':>10}{'Vendor':^15}{'Delta':^10}",
+            f"{'Item':<50}{'Flea':>10}{'VenPays':>10}{'Vendor':^15}{'Delta':^10}",
             Color.CYAN
         )
     )
@@ -191,7 +184,6 @@ async def main():
                     sys.exit()
 
                 if inp.lower() == "ven":
-                    input("Show Only Vendor Purchase Price Selected. Press Enter to Continue")
                     ven_show = not ven_show
                     continue
 
@@ -220,7 +212,7 @@ async def main():
 
             if ven_show:
                 ls = [color_text(
-                            f"{item['name']:<35}"
+                            f"{item['name']:<50}"
                             f"{vendors[item["id"]]["vendor"]:>10}"
                             f"{vendors[item["id"]]["priceRUB"]:^15}",
                             Color.BRTBLUE
