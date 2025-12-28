@@ -1,41 +1,53 @@
-from datetime import datetime
-from colors import Color, color_text
 import queries
-import sort
-import pyfiglet
 import asyncio
 import aiohttp
 import os
 import sys
 import time
+import json
+
+from pathlib import Path
+from colors import Color, color_text
+
+
+class VendorDataException(Exception):
+    def __init__(self, prop_exception):
+        super().__init__(f"Failed to pull Vendor Data.\n{prop_exception}")
+
+
+def load_list_components():
+    lists = {}
+    item_list_directory = Path("item_lists")
+    for p in item_list_directory.iterdir():
+        with open(p, "r") as f:
+            lists[" ".join(p.name.split(".")[0].split("_")).title()] = json.load(f)
+    return lists
 
 
 async def pull_item_price(session, item_id: str):
     """Queries Tarkov API asynchronously for item price data."""
     query = queries.pull_item_price_query(item_id)
-    res = await queries.run_query(session, query)
-
-    if res:
+    try:
+        res = await queries.run_query(session, query)
         return res.get("data", {}).get("itemPrices", [])
-    print(f"Failed to pull item price data for {item_id}")
-    return []
+    except Exception as e:
+        return []
 
 
 async def get_best_vendor(session, item_ids: list):
-    """Queries Tarkov API asynchronously for the best vendor price."""
+    """ Queries Tarkov API for vendor data and builds a lookup table of best sale vendors for each listed item. """
     query, variables = queries.pull_vendor_sell_prices(item_ids)
-    res = await queries.run_query(session, query)
 
-    if res:
+    try:
+        res = await queries.run_query(session, query)
         item_data = {}
         items = res["data"]["items"]
-        for item in items:
 
+        for item in items:
             vendors = item["sellFor"]
             best_vendor, best_price = {"priceRUB": 0, "vendor": {"name": "None"}}, 0
 
             for vendor in vendors:
-
                 if vendor["priceRUB"] > best_price and vendor["vendor"]["name"] != "Flea Market":
                     best_vendor = vendor
                     best_price = vendor["priceRUB"]
@@ -45,69 +57,67 @@ async def get_best_vendor(session, item_ids: list):
                 "priceRUB": best_vendor["priceRUB"],
                 "id": item["id"]
             }
-            item_data[item["id"]] = data
-        return item_data
 
+            item_data[item["id"]] = data
+
+        return item_data
+    except Exception as e:
+        raise VendorDataException(e)
 
 async def check_item_profitability(session, item, vend: dict, time_factor: str):
-    """Checks item profitability asynchronously."""
-    if time_factor not in ["minute", "hour", "day", "all_time"]:
-        raise ValueError("Improper time factor passed to function.\n"
-                         "Acceptable time factors: 'minute', 'hour', 'day', 'all_time'")
+    time_windows = {
+        "minute": 300,
+        "hour": 3600,
+        "day": 86400,
+        "all_time": float("inf"),
+    }
 
-    prices_task = pull_item_price(session, item["id"])
-    prices = await prices_task
+    try:
+        max_age = time_windows[time_factor]
+    except KeyError:
+        raise ValueError(
+            "Improper time factor passed to function.\n"
+            "Acceptable time factors: 'minute', 'hour', 'day', 'all_time'"
+        )
 
+    prices = await pull_item_price(session, item["id"])
+
+    now = int(time.time())
     profitable = []
-    price_aggregate = []
+
     for val in prices:
-        epoch_now = int(time.time())
-        price_timestamp = int(val["timestamp"]) / 1000
-        time_diff = abs(epoch_now - price_timestamp)
+        price_diff = vend["priceRUB"] - val["price"]
+        if price_diff <= 1000:
+            continue
 
-        if vend["priceRUB"] - val["price"] > 1000:
-            match time_factor:
-                case "minute":
-                    if time_diff <= 300:
-                        price_aggregate.append(val["price"])
-                        profitable.append(val)
-                case "hour":
-                    if time_diff <= 3600:
-                        price_aggregate.append(val["price"])
-                        profitable.append(val)
-                case "day":
-                    if time_diff <= 86400:
-                        price_aggregate.append(val["price"])
-                        profitable.append(val)
-                case "all_time":
-                    price_aggregate.append(val["price"])
-                    profitable.append(val)
+        age = abs(now - (int(val["timestamp"]) // 1000))
+        if age <= max_age:
+            profitable.append(val)
 
-    avg_price = int(sum(price_aggregate) / len(price_aggregate)) if price_aggregate else 0
+    if len(profitable) <= 5:
+        return
+
+    avg_price = int(sum(v["price"] for v in profitable) / len(profitable))
     diff = vend["priceRUB"] - avg_price
 
-    if len(profitable) > 5:
-        if diff <= 2000:
-            print(
-                color_text(
-                    f"{item['name']:<50}{avg_price:>10}{vend['priceRUB']:>10}{vend['vendor']:^15}{diff:^10}",
-                    Color.BRTBLUE
-                )
-            )
-        elif 2001 <= diff <= 3000:
-            print(
-                color_text(
-                    f"{item['name']:<50}{avg_price:>10}{vend['priceRUB']:>10}{vend['vendor']:^15}{diff:^10}",
-                    Color.BRTCYAN
-                )
-            )
-        elif diff > 3000:
-            print(
-                color_text(
-                    f"{item['name']:<50}{avg_price:>10}{vend['priceRUB']:>10}{vend['vendor']:^15}{diff:^10}",
-                    Color.BRTGREEN
-                )
-            )
+    color_thresholds = [
+        (3000, Color.BRTGREEN),
+        (2000, Color.BRTCYAN),
+        (0, Color.BRTBLUE),
+    ]
+
+    color = next(c for threshold, c in color_thresholds if diff >= threshold)
+
+    print(
+        color_text(
+            f"{item['name']:<50}"
+            f"{avg_price:>10}"
+            f"{vend['priceRUB']:>10}"
+            f"{vend['vendor']:^15}"
+            f"{diff:^10}",
+            color,
+        )
+    )
 
 
 def print_table_header():
@@ -121,25 +131,38 @@ def print_table_header():
 
 
 async def main():
+    banner = r"""
+ _____         _           ____                  
+|_   _|___ ___| |_ ___ _ _|    \ ___ ___ ___ ___ 
+  | | | .'|  _| '_| . | | |  |  |  _| . |   | -_|
+  |_| |__,|_| |_,_|___|\_/|____/|_| |___|_|_|___|  
+    """
+
     os.system("cls")
 
-    banner = pyfiglet.figlet_format("StandardBlyat")
-    lists = sort.LISTS
+    lists = load_list_components()
     list_map = {i + 1: k for i, k in enumerate(lists.keys())}
     list_strs = [color_text(f"{k}: {v}", Color.CYAN) for k, v in list_map.items()]
     list_strs.append(color_text("\nType Exit to Quit.", Color.BRTRED))
 
+    print(color_text("Pulling vendor information...", Color.BRTCYAN))
+
     async with aiohttp.ClientSession() as session:
-        vendors = await get_best_vendor(session, [item["id"] for item in lists["Primary List"]])
+        try:
+            vendors = await get_best_vendor(session, [item["id"] for item in lists["Primary List"]])
+        except VendorDataException as e:
+            print(color_text("Failed to parse vendor data. Exiting.", Color.BRTRED))
+            print("")
+            print(e)
+            return
 
         ven_flag = False
         ven_show = False
 
-        while True:
-            print("=" * 68)
-            print(banner)
-            print("=" * 68)
+        print(color_text("Done.", Color.BRTGREEN))
+        print(banner)
 
+        while True:
             try:
                 time_map = {1: "minute", 2: "hour", 3: "day", 4: "all_time"}
                 time_fac_input = int(
@@ -153,7 +176,7 @@ async def main():
                         f"\n"
                         f"Please select a time factor to limit flea market data.\n"
                         f"The time factor will define how far back flea market data\n"
-                        f"will be reviewed for items.\n"
+                        f"will be reviewed for items.\nTime Factor (1-4): "
                     )
                 )
 
@@ -170,10 +193,6 @@ async def main():
                 continue
 
         while True:
-            print("=" * 68)
-            print(banner)
-            print("=" * 68)
-
             try:
                 inp = input(f"\n{"\n".join(list_strs)}\n\nVen: {ven_show}\n\nPlease select a list to scan: ")
 
@@ -187,19 +206,19 @@ async def main():
                     ven_show = not ven_show
                     continue
 
-                inp = int(inp)
+                if inp.isdigit():
+                    inp = int(inp)
 
                 if inp not in list_map:
                     input("Invalid selection. Try again. Press Enter to Continue")
                     continue
 
             except ValueError:
-                print("Invalid input. Enter a number.")
+                input("Invalid input. Press enter to continue.")
                 continue
 
             if not vendors:
-
-                if ven_flag:  # Failing vendor data pulls, exit the application
+                if ven_flag:
                     print("Unable to pull vendor data, сука блять...")
                     time.sleep(3)
                     sys.exit()
@@ -223,13 +242,16 @@ async def main():
 
             else:
                 print(f"\nScanning {list_map[inp]}...\n")
+                start = time.time()
                 print_table_header()
 
-                tasks = [check_item_profitability(session, item, vendors[item["id"]], time_factor) for item in scan_list]
+                tasks = [check_item_profitability(session, item, vendors[item["id"]], time_factor) for item in
+                         scan_list]
                 await asyncio.gather(*tasks)
 
-            print("\n\033[36m15-2, 15-4 That's all there is, there ain't no more.\033[0m")
-            input("\033[36mPress Enter to select a new scan list...\033[0m")
+            end = time.time()
+            print("\n" + color_text(f"List scan completed in {end-start:.3f} seconds.", Color.CYAN))
+            input(color_text("Press Enter to select a new scan list...", Color.CYAN))
             os.system("cls")
 
 

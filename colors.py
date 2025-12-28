@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 class Color(Enum):
     RED = "red"
     GREEN = "green"
@@ -18,36 +17,26 @@ class Color(Enum):
     BRTCYAN = "bright cyan"
     BRTWHITE = "bright white"
 
+ANSI_COLORS = {
+    "red": 31,
+    "green": 32,
+    "yellow": 33,
+    "blue": 34,
+    "magenta": 35,
+    "cyan": 36,
+    "white": 37,
+    "gray": 90,
+    "bright red": 91,
+    "bright green": 92,
+    "bright yellow": 93,
+    "bright blue": 94,
+    "bright magenta": 95,
+    "bright cyan": 96,
+    "bright white": 97,
+}
 
-def color_text(str_phrase: str, color: Color) -> str:
-    match color.value:
-        case "red":
-            return f"\033[31m{str_phrase}\033[0m"
-        case "green":
-            return f"\033[32m{str_phrase}\033[0m"
-        case "yellow":
-            return f"\033[33m{str_phrase}\033[0m"
-        case "blue":
-            return f"\033[34m{str_phrase}\033[0m"
-        case "magenta":
-            return f"\033[35m{str_phrase}\033[0m"
-        case "cyan":
-            return f"\033[36m{str_phrase}\033[0m"
-        case "white":
-            return f"\033[37m{str_phrase}\033[0m"
-        case "gray":
-            return f"\033[90m{str_phrase}\033[0m"
-        case "bright red":
-            return f"\033[91m{str_phrase}\033[0m"
-        case "bright green":
-            return f"\033[92m{str_phrase}\033[0m"
-        case "bright yellow":
-            return f"\033[93m{str_phrase}\033[0m"
-        case "bright blue":
-            return f"\033[94m{str_phrase}\033[0m"
-        case "bright magenta":
-            return f"\033[95m{str_phrase}\033[0m"
-        case "bright cyan":
-            return f"\033[96m{str_phrase}\033[0m"
-        case "bright white":
-            return f"\033[97m{str_phrase}\033[0m"
+def color_text(text: str, color: Color) -> str:
+    code = ANSI_COLORS.get(color.value)
+    if code is None:
+        return text
+    return f"\033[{code}m{text}\033[0m"

@@ -1,8 +1,8 @@
 # StandardBlyat
 
-This script compares flea market items with vendor sale prices. If items are found to have numerous flea sale prices less than a vendor sale price, those items are aggregated and compared to determine profitability. The flea market moves fast, so this is not a gaurantee that the item is still present, but generally points towards higher volume "discount" items as the Delta increases. I've currently had more success with timeliness on items with Deltas approaching ~3000
+This script compares flea market items with vendor sale prices. If items are found to have historical flea sale prices less than any vendor purchase price, those items are aggregated and compared to determine profitability. The flea market moves fast, so this is not a gaurantee that the item is still present, but generally points towards higher volume "discount" items as the Delta increases. I've currently had more success with timeliness on items with Deltas approaching ~3000
 
-After execution you can choose what item list to scan. These items lists are broken up based on flea market branches. Select a list by inputting the desired number. 
+After execution you can choose what item list to scan. These items lists are broken up based on flea market branches. Select a list by inputting the corresponding list number. 
 
 ## Requirements
 To execute this script you will need [Python](https://www.python.org/downloads/) installed with minimum version 3.12. 
