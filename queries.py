@@ -1,14 +1,23 @@
+# queries.py
+
+class RateLimitError(Exception):
+    def __init__(self, retry_after=None):
+        self.retry_after = retry_after
+        super().__init__("API rate limit hit (429)")
 
 
 async def run_query(session, query, variables=None):
-    """Runs a GraphQL query asynchronously."""
     url = "https://api.tarkov.dev/graphql"
-    try:
-        async with session.post(url, json={"query": query, "variables": variables}) as response:
-            return await response.json()
-    except Exception as e:
-        print(f"Query failed: {e}")
-        return None
+
+    async with session.post(
+        url, json={"query": query, "variables": variables}
+    ) as response:
+
+        if response.status == 429:
+            raise RateLimitError(response.headers.get("Retry-After"))
+
+        response.raise_for_status()
+        return await response.json()
 
 
 def pull_items_query():
@@ -66,3 +75,14 @@ def pull_vendor_sell_prices(item_ids: list):
     }
     return query, variables
 
+
+# if __name__ == "__main__":
+#     import asyncio
+#     import aiohttp
+#
+#     async def main():
+#         async with aiohttp.ClientSession() as session:
+#             result = await run_query(session, pull_items_query())
+#             return result
+#
+#     res = asyncio.run(main())
